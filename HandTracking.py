@@ -1,3 +1,4 @@
+from turtle import color
 import cv2
 import mediapipe as mp
 import time
@@ -23,14 +24,21 @@ class HandDetector():
                 if draw:
                     self.mpDraw.draw_landmarks(img, handLms, self.mpHands.HAND_CONNECTIONS)
         return img
-        
-        # Getting the landmark list
-        # for id,lm in enumerate(handLms.landmark):
-        #     # print(id,lm)
-        #     h,w,c = img.shape
-        #     cx,cy = int(lm.x * w), int(lm.y * h)
-        #     # print(id,cx,cy)
-                
+
+    def findPosition(self, img, handNo = 0, draw = True):
+        lmList = []
+        if self.results.multi_hand_landmarks:
+            myHand = self.results.multi_hand_landmarks[handNo]
+            # Getting the landmark list
+            for id,lm in enumerate(myHand.landmark):
+                # print(id,lm)
+                h,w,c = img.shape
+                cx,cy = int(lm.x * w), int(lm.y * h)
+                # print(id,cx,cy)
+                lmList.append([id,cx,cy])
+                if draw:
+                    cv2.circle(img,(cx,cy),5,(255,0,0),cv2.FILLED)
+        return lmList
 
 def main():
     pTime = 0
@@ -41,6 +49,9 @@ def main():
     while True:
         success,img = cap.read()
         img = detector.findHands(img)
+        lmList = detector.findPosition(img)
+        if len(lmList) != 0:
+            print(lmList[4]) #landmark no 4 -> tip of thumb
         # FPS
         cTime = time.time()
         fps = 1/(cTime-pTime)
